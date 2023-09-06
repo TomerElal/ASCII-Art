@@ -1,0 +1,117 @@
+tomerelal
+208244244
+
+=============================
+=      File description     =
+=============================
+BrightnessImgCharMatcher.java - A class responsible for converting the original image to an ASCII ART image.
+Shell.java - This class implements the entire user interface when running the program
+             that converts a normal image to an ASCII image.
+FileImage.java - A class that implements the Image interface and is responsible for creating an image
+                 represented by pixels from a Color object
+
+=============================
+=          Design           =
+=============================
+First we note that the Image interface is actually a facade since it wraps the complex API of the classes that
+implement it and provides a simpler API for the user that actually provides the functionality in a simpler
+and more accessible way.
+We will also note the polymorphism in the program that appears mainly through the Image interface since we
+receive in the Shell and BrightnessImgCharMatcher classes an object of type Image and are not fixed to a
+specific class. Another polymorphism appears in the rendering classes of the ASCII image.
+
+=============================
+=  Implementation details   =
+=============================
+
+                         ### Data Structure I chose for the algorithm in ChooseChars ###
+In the ChooseChars function, we were asked to implement an algorithm whose main goal is that for each
+sub-image, the algorithm will match the brightness value of the sub-image to the brightness value of any
+corresponding character from a specific array of character brightnesses. From this requirement arises the
+need to find in an efficient way, given the brightness of a sub-image, a brightness value of a character that
+is closest to an absolute value out of all the possibilities. For this reason, I chose to use a data
+structure of a binary search tree (that is, a TreeMap in Java) that would contain the brightness values of
+the characters as keys and the corresponding characters as values.
+
+                        ### Explanations for the API I chose for the different classes ###
+In the FileImage class I implemented a private function (called in the constructor) that pads the original
+image as requested. My function for dividing images into sub-images is implemented as a default function
+in the Image class, therefore this function receives several necessary parameters (this is what we were told
+to do in the forum, this was not my choice).
+I implemented the function that calculates brightness for characters in the BrightnessImgCharMatcher class as
+requested and it is a private function.
+The brightness of the sub-images is calculated in a private function in the BrightnessImgCharMatcher class.
+Converting the complete image to an ASCII ART image is performed in the ChooseChars function using private
+helper functions as I described above.
+
+=============================
+=    Answers to questions   =
+=============================
+
+                       ### What I did to optimize the runtime in future render operations ###
+The first thing I did was that every time I run the render command, that is, every time I call the ChooseChars
+function, I save the brightness of the calculated characters (before normalization) in a HashMap, and so in
+the following runs, every time the function is used to calculate the brightness of a character, it will
+first check if the brightness has already been calculated before. This test takes O(1) in expectancy as
+opposed to a full calculation of character brightness whose running time is dependent on the number of
+pixels we divide the character into.
+The second operation I do to optimize the runtime is to save a HashMap of sub-image brightnesses, where the
+values in the map are two-dimensional arrays (ArrayLists of ArrayList) that actually store the sub-image
+brightnesses according to a suitable index, and the key represents the size of the sub-image in the array of
+brightnesses. (so that we know which cell to access in the next rendering)
+
+
+                            ### Time & Space Complexity of function ChooseChars ###
+Calculate the running time of the algorithm given k characters, and an image of  size (nxm) i.e. n rows of
+pixels and m columns of pixels:
+It is considered for the worst case that we receive a requirement for the highest resolution, which means
+that each sub-image is 1x1 in size, which means a single pixel. Also, in the worst case, we have not yet
+calculated the sub-brightness of the characters and the sub-images in the past. The runtime is obtained by
+three sub algorithms in ChooseChars as well as the main operation of the algorithm that matches
+a character to a subImage -
+1) Creating the sub-images: given image dimensions of nxm it will take O(m*n) (it will be explained below why)
+2) Calculation of brightnesses of the sub-images in the worst case: regardless of sub-image dimensions,
+the entire calculation of the brightnesses of the sub-images will take O(m*n) since in any case we will
+perform a fixed number of arithmetic operations on each pixel and there are a total of mxn pixels.
+3) Calculating character brightness:k given a character, we break it down into p*p pixels (in our case 16*16)
+and for each pixel we perform arithmetic operations. There are a total of k characters so we
+get a runtime of O(k*p*p). Now to calculate the main operation in the function that adjusts brightness, for
+each sub-image we perform a search in a binary search tree when the tree has at most k keys, which means that
+one search will take us O(log(k)) corresponding to the number of characters we received. As mentioned above,
+in the worst case there are m*n sub-images, so the running time for this operation will take
+a total of O(m*n*log(k)). So to summarize the running time of the function we will get:
+O(m*n) + O(m*n) + O(k*p*p) + O(m*n*log(k)) = O(k*p*p) + O(m*n*log(k)).
+(in our case O(k*16*16) + O(m*n*log(k)) that is O(94*16*16) + O(m*n*log(94)) because k=94 at most, that is
+O(m*n) in total)
+
+Calculating the complexity of the place is simpler - during the running of the algorithm we save k
+brightnesses of characters and at most m*n brightnesses of sub-images, we also save a two-dimensional array
+of characters (the array we return from the function) which is also at most m*n in size In total we will get
+a space complexity of O(m*n + k). (in our case O(m*n) because k=94 at most)
+
+A note about the complications of time and memory:
+We will note that saving the brightness values for the following renders does improve the running time,
+but they harm the memory efficiency since in each render we save more and more brightness values of
+characters and sub-images according to the user's commands
+
+
+                ### Explanations for the API I chose for the different classes ###
+In the FileImage class I implemented a private function (called in the constructor) that pads the original
+image as requested. My function for dividing images into sub-images is implemented as a default function
+in the Image class, therefore this function receives several necessary parameters (this is what we were told
+to do in the forum, this was not my choice).
+I implemented the function that calculates brightness for characters in the BrightnessImgCharMatcher class as
+requested and it is a private function.
+The brightness of the sub-images is calculated in a private function in the BrightnessImgCharMatcher class.
+Converting the complete image to an ASCII ART image is performed in the ChooseChars function using private
+helper functions as I described above.
+
+
+A few words about the algorithm for dividing images into sub-images:
+First, in terms of running time, given an image with dimensions m*n the algorithm goes through each pixel in
+the original image and puts it into a suitable array in the returned image which is divided into sub-images.
+Therefore, going over all the pixels + access operations and inserting them into the array takes O(n*m).
+
+
+
+
